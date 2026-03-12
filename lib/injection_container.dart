@@ -9,10 +9,17 @@ import 'features/auth/data/repositories/auth_repository_impl.dart';
 import 'features/auth/domain/repositories/auth_repository.dart';
 import 'features/auth/domain/usecases/login_user.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
+import 'core/theme/presentation/bloc/theme_bloc.dart';
 
 final sl = GetIt.instance;
 
 Future<void> init() async {
+  // --- Core ---
+  sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(sl()));
+
+  // Theme
+  sl.registerFactory(() => ThemeBloc());
+
   // --- Features ---
   // Auth
   sl.registerFactory(() => AuthBloc(loginUseCase: sl()));
@@ -30,9 +37,6 @@ Future<void> init() async {
     () => AuthLocalDataSourceImpl(),
   );
 
-  // --- Core ---
-  sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(sl()));
-
   // --- External ---
   sl.registerLazySingleton(() => Dio());
   sl.registerLazySingleton(() => Connectivity());
@@ -41,4 +45,5 @@ Future<void> init() async {
   await Hive.initFlutter();
   await Hive.openBox('authBox');
   await Hive.openBox('deviceCache');
+  await Hive.openBox('settings');
 }

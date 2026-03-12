@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'injection_container.dart' as di;
+import 'injection_container.dart';
 import 'features/auth/presentation/pages/login_page.dart';
+import 'core/theme/app_theme.dart';
+import 'core/theme/presentation/bloc/theme_bloc.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -13,19 +17,49 @@ class PlexusApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Plexus NOC',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        fontFamily: 'Poppins',
-        scaffoldBackgroundColor: const Color(0xFF1A1A2E),
-        useMaterial3: true,
+    return BlocProvider(
+      create: (_) => sl<ThemeBloc>()..add(LoadTheme()),
+      child: BlocBuilder<ThemeBloc, ThemeState>(
+        builder: (context, state) {
+          ThemeMode mode = ThemeMode.dark;
+          if (state is ThemeLoaded) {
+            mode = state.themeMode;
+          }
+
+          return MaterialApp(
+            title: 'Plexus NOC',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: mode,
+            home: LoginPage(),
+            routes: {
+              '/login': (context) => LoginPage(),
+              '/dashboard': (context) => Scaffold(
+                    appBar: AppBar(
+                      actions: [
+                        IconButton(
+                          icon: Icon(mode == ThemeMode.dark
+                              ? Icons.light_mode
+                              : Icons.dark_mode),
+                          onPressed: () {
+                            context.read<ThemeBloc>().add(ToggleTheme());
+                          },
+                        )
+                      ],
+                    ),
+                    body: const Center(
+                      child: Text(
+                        "Dashboard\n(Coming Soon)",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 24),
+                      ),
+                    ),
+                  ),
+            },
+          );
+        },
       ),
-      home: LoginPage(),
-      routes: {
-        '/login': (context) => LoginPage(),
-        // We will define Dashboard route in Phase 2
-      },
     );
   }
 }

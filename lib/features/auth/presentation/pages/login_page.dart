@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../injection_container.dart';
+import '../../../../core/theme/presentation/bloc/theme_bloc.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
@@ -14,8 +15,25 @@ class LoginPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1A2E), // Deep dark blue
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: Icon(
+              isDark ? Icons.light_mode : Icons.dark_mode,
+              color: isDark ? Colors.white : Colors.black,
+            ),
+            onPressed: () {
+              context.read<ThemeBloc>().add(ToggleTheme());
+            },
+          ),
+        ],
+      ),
       body: BlocProvider(
         create: (_) => sl<AuthBloc>(),
         child: BlocConsumer<AuthBloc, AuthState>(
@@ -36,18 +54,18 @@ class LoginPage extends StatelessWidget {
             return SafeArea(
               child: Center(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(24.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
                   child: Form(
                     key: _formKey,
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        _buildHeader(),
+                        _buildHeader(context),
                         const SizedBox(height: 48),
-                        _buildEmailField(),
+                        _buildEmailField(context),
                         const SizedBox(height: 16),
-                        _buildPasswordField(),
+                        _buildPasswordField(context),
                         const SizedBox(height: 32),
                         _buildLoginButton(context, state),
                       ],
@@ -62,45 +80,61 @@ class LoginPage extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context) {
+    final theme = Theme.of(context);
     return Column(
       children: [
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: const Color(0xFF16213E),
+            color: theme.colorScheme.surface,
             borderRadius: BorderRadius.circular(20),
+            boxShadow: theme.brightness == Brightness.light
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    )
+                  ]
+                : null,
           ),
-          child: const Icon(
+          child: Icon(
             Icons.wifi_tethering,
             size: 48,
-            color: Colors.cyanAccent,
+            color: theme.colorScheme.primary,
           ),
         ),
         const SizedBox(height: 24),
-        const Text(
+        Text(
           "Plexus NOC",
           style: TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.w700,
-            color: Colors.white,
+            color: theme.colorScheme.onSurface,
             letterSpacing: 1.2,
           ),
         ),
         const SizedBox(height: 8),
         Text(
           "Network Operations Center",
-          style: TextStyle(fontSize: 14, color: Colors.grey[400]),
+          style: TextStyle(
+            fontSize: 14,
+            color: theme.brightness == Brightness.dark
+                ? Colors.grey[400]
+                : Colors.grey[600],
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildEmailField() {
+  Widget _buildEmailField(BuildContext context) {
+    final theme = Theme.of(context);
     return TextFormField(
       controller: emailController,
-      style: const TextStyle(color: Colors.white),
-      decoration: _inputDecoration('Email Address', Icons.email_outlined),
+      style: TextStyle(color: theme.colorScheme.onSurface),
+      decoration: _inputDecoration(context, 'Email Address', Icons.email_outlined),
       validator: (value) {
         if (value == null || value.isEmpty) return 'Please enter email';
         if (!value.contains('@')) return 'Please enter a valid email';
@@ -109,12 +143,13 @@ class LoginPage extends StatelessWidget {
     );
   }
 
-  Widget _buildPasswordField() {
+  Widget _buildPasswordField(BuildContext context) {
+    final theme = Theme.of(context);
     return TextFormField(
       controller: passwordController,
       obscureText: true,
-      style: const TextStyle(color: Colors.white),
-      decoration: _inputDecoration('Password', Icons.lock_outline),
+      style: TextStyle(color: theme.colorScheme.onSurface),
+      decoration: _inputDecoration(context, 'Password', Icons.lock_outline),
       validator: (value) {
         if (value == null || value.isEmpty) return 'Please enter password';
         if (value.length < 6) return 'Password must be at least 6 characters';
@@ -123,25 +158,33 @@ class LoginPage extends StatelessWidget {
     );
   }
 
-  InputDecoration _inputDecoration(String hint, IconData icon) {
+  InputDecoration _inputDecoration(BuildContext context, String hint, IconData icon) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return InputDecoration(
       hintText: hint,
-      hintStyle: TextStyle(color: Colors.grey[500]),
-      prefixIcon: Icon(icon, color: Colors.grey[500]),
+      hintStyle: TextStyle(color: isDark ? Colors.grey[500] : Colors.grey[600]),
+      prefixIcon: Icon(icon, color: isDark ? Colors.grey[500] : Colors.grey[600]),
       filled: true,
-      fillColor: const Color(0xFF16213E),
+      fillColor: theme.colorScheme.surface,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide.none,
+        borderSide: isDark ? BorderSide.none : BorderSide(color: Colors.grey[300]!),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: isDark ? BorderSide.none : BorderSide(color: Colors.grey[300]!),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Colors.cyan, width: 2),
+        borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
       ),
     );
   }
 
   Widget _buildLoginButton(BuildContext context, AuthState state) {
+    final theme = Theme.of(context);
     return MaterialButton(
       onPressed: state is AuthLoading
           ? null
@@ -155,22 +198,22 @@ class LoginPage extends StatelessWidget {
                 );
               }
             },
-      color: Colors.cyanAccent,
+      color: theme.colorScheme.primary,
       padding: const EdgeInsets.symmetric(vertical: 16),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: state is AuthLoading
-          ? const SizedBox(
+          ? SizedBox(
               height: 20,
               width: 20,
               child: CircularProgressIndicator(
-                color: Colors.black,
+                color: theme.brightness == Brightness.dark ? Colors.black : Colors.white,
                 strokeWidth: 2,
               ),
             )
-          : const Text(
+          : Text(
               'LOGIN',
               style: TextStyle(
-                color: Colors.black,
+                color: theme.brightness == Brightness.dark ? Colors.black : Colors.white,
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
               ),
