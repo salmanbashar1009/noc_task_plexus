@@ -16,10 +16,10 @@ class LoginHeader extends StatelessWidget {
             boxShadow: theme.brightness == Brightness.light
                 ? [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Colors.black.withAlpha(128),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
-                    )
+                    ),
                   ]
                 : null,
           ),
@@ -31,7 +31,7 @@ class LoginHeader extends StatelessWidget {
         ),
         const SizedBox(height: 24),
         Text(
-          "Plexus NOC",
+          "Plexus Cloud NOC",
           style: TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.w700,
