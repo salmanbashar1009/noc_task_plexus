@@ -8,11 +8,19 @@ import 'device_state.dart';
 class DeviceBloc extends Bloc<DeviceEvent, DeviceState> {
   final DeviceRepository repository;
   final Map<String, bool> _previousOnlineStatus = {};
+  StreamSubscription? _deviceSubscription;
 
   DeviceBloc({required this.repository}) : super(DeviceInitial()) {
     on<StartMonitoring>(_onStartMonitoring);
+    on<UpdateDevices>(_onUpdateDevices);
     on<RefreshDevices>(_onRefreshDevices);
     on<FilterDevices>(_onFilterDevices);
+  }
+
+  @override
+  Future<void> close() {
+    _deviceSubscription?.cancel();
+    return super.close();
   }
 
   List<DeviceEntity> _getNewOfflineDevices(List<DeviceEntity> devices) {
@@ -54,19 +62,43 @@ class DeviceBloc extends Bloc<DeviceEvent, DeviceState> {
   ) async {
     emit(DeviceLoading());
     _previousOnlineStatus.clear();
+    await _deviceSubscription?.cancel();
 
-    final result = await repository.getDevices();
-    result.fold(
-      (failure) => emit(DeviceError(failure.message)),
-      (devices) {
-        final alertDevices = _getNewOfflineDevices(devices);
-        emit(DeviceLoaded(
-          devices,
-          alertDevices: alertDevices,
-          filteredDevices: devices,
-        ));
+    _deviceSubscription = repository.watchDevices().listen(
+      (result) {
+        result.fold(
+          (failure) => add(RefreshDevices()), // Or handle error
+          (devices) => add(UpdateDevices(devices)),
+        );
       },
+      onError: (error) {
+         emit(DeviceError(error.toString()));
+      }
     );
+  }
+
+  void _onUpdateDevices(UpdateDevices event, Emitter<DeviceState> emit) {
+    final devices = event.devices;
+    final alertDevices = _getNewOfflineDevices(devices);
+    
+    String query = '';
+    DeviceFilter filter = DeviceFilter.all;
+    
+    if (state is DeviceLoaded) {
+      final s = state as DeviceLoaded;
+      query = s.searchQuery;
+      filter = s.currentFilter;
+    }
+
+    final filtered = _getFilteredDevices(devices, query, filter);
+
+    emit(DeviceLoaded(
+      devices,
+      alertDevices: alertDevices,
+      filteredDevices: filtered,
+      searchQuery: query,
+      currentFilter: filter,
+    ));
   }
 
   Future<void> _onRefreshDevices(
@@ -76,28 +108,7 @@ class DeviceBloc extends Bloc<DeviceEvent, DeviceState> {
     final result = await repository.getDevices();
     result.fold(
       (failure) => emit(DeviceError(failure.message)),
-      (devices) {
-        final alertDevices = _getNewOfflineDevices(devices);
-        
-        String query = '';
-        DeviceFilter filter = DeviceFilter.all;
-        
-        if (state is DeviceLoaded) {
-          final s = state as DeviceLoaded;
-          query = s.searchQuery;
-          filter = s.currentFilter;
-        }
-
-        final filtered = _getFilteredDevices(devices, query, filter);
-
-        emit(DeviceLoaded(
-          devices,
-          alertDevices: alertDevices,
-          filteredDevices: filtered,
-          searchQuery: query,
-          currentFilter: filter,
-        ));
-      },
+      (devices) => add(UpdateDevices(devices)),
     );
   }
 
@@ -112,7 +123,7 @@ class DeviceBloc extends Bloc<DeviceEvent, DeviceState> {
       
       emit(DeviceLoaded(
         s.devices,
-        alertDevices: const [], // Don't trigger alerts on filter
+        alertDevices: const [], // Don't trigger alerts on manual filter
         filteredDevices: filtered,
         searchQuery: newQuery,
         currentFilter: newFilter,

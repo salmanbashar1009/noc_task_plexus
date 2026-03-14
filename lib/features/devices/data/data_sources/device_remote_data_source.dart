@@ -9,11 +9,14 @@ abstract class DeviceRemoteDataSource {
 
 class DeviceRemoteDataSourceImpl implements DeviceRemoteDataSource {
   final Random _random = Random();
+  final _controller = StreamController<List<DeviceModel>>.broadcast();
+  Timer? _timer;
 
   List<DeviceModel> _currentDevices = [];
 
   DeviceRemoteDataSourceImpl() {
     _initializeDevices();
+    _startSimulation();
   }
 
   void _initializeDevices() {
@@ -31,22 +34,29 @@ class DeviceRemoteDataSourceImpl implements DeviceRemoteDataSource {
     });
   }
 
-  @override
-  Stream<List<DeviceModel>> watchDevices() {
-    return Stream.periodic(const Duration(seconds: 10), (_) {
-      return _updateDevices();
+  void _startSimulation() {
+    _timer = Timer.periodic(const Duration(seconds: 30), (_) {
+      _updateDevices();
+      _controller.add(_currentDevices);
     });
+  }
+
+  @override
+  Stream<List<DeviceModel>> watchDevices() async* {
+    yield _currentDevices;
+    yield* _controller.stream;
   }
 
   @override
   Future<List<DeviceModel>> getDevices() async {
     // Simulate network delay
     await Future.delayed(const Duration(milliseconds: 500));
-    return _updateDevices();
+    return _currentDevices;
   }
 
-  List<DeviceModel> _updateDevices() {
+  void _updateDevices() {
     _currentDevices = _currentDevices.map((device) {
+      // 20% chance of status change
       final bool statusChange = _random.nextInt(5) == 0;
 
       return DeviceModel(
@@ -60,8 +70,6 @@ class DeviceRemoteDataSourceImpl implements DeviceRemoteDataSource {
         memoryUsage: (_random.nextDouble() * 100).clamp(10.0, 95.0),
       );
     }).toList();
-
-    return _currentDevices;
   }
 
   String _getDeviceName(int index) {
@@ -77,5 +85,10 @@ class DeviceRemoteDataSourceImpl implements DeviceRemoteDataSource {
       'Tokyo Hub',
     ];
     return locs[index % locs.length];
+  }
+
+  void dispose() {
+    _timer?.cancel();
+    _controller.close();
   }
 }

@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import '../../domain/entities/device_entity.dart';
 
 enum DeviceFilter { all, online, offline }
 
@@ -10,6 +11,14 @@ abstract class DeviceEvent extends Equatable {
 }
 
 class StartMonitoring extends DeviceEvent {}
+
+class UpdateDevices extends DeviceEvent {
+  final List<DeviceEntity> devices;
+  const UpdateDevices(this.devices);
+
+  @override
+  List<Object?> get props => [devices];
+}
 
 class RefreshDevices extends DeviceEvent {}
 
