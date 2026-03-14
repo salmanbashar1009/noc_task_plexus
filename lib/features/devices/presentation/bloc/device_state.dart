@@ -14,7 +14,7 @@ class DeviceLoading extends DeviceState {}
 
 class DeviceLoaded extends DeviceState {
   final List<DeviceEntity> devices;
-  final DeviceEntity? alertDevice; // Used to trigger popups
+  final DeviceEntity? alertDevice;
 
   const DeviceLoaded(this.devices, {this.alertDevice});
 

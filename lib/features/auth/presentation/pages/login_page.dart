@@ -57,7 +57,7 @@ class LoginPage extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       const LoginHeader(),
-                      const SizedBox(height: 48),
+                      const SizedBox(height: 40),
                       LoginForm(state: state),
                     ],
                   ),
