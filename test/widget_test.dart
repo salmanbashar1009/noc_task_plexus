@@ -1,30 +1,87 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:get_it/get_it.dart';
+import 'package:noc_task_plexus/features/splash/presentation/pages/splash_page.dart';
+import 'package:noc_task_plexus/features/auth/presentation/pages/login_page.dart';
+import 'package:noc_task_plexus/core/theme/presentation/bloc/theme_bloc.dart';
+import 'package:noc_task_plexus/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:noc_task_plexus/features/auth/presentation/bloc/auth_state.dart';
 
-import 'package:noc_task_plexus/main.dart';
+class MockAuthBloc extends Mock implements AuthBloc {}
+class MockThemeBloc extends Mock implements ThemeBloc {}
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const PlexusApp());
+  late MockAuthBloc mockAuthBloc;
+  late MockThemeBloc mockThemeBloc;
+  final sl = GetIt.instance;
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+  setUpAll(() {
+    registerFallbackValue(AuthInitial());
+    registerFallbackValue(ThemeInitial());
+  });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+  setUp(() {
+    mockAuthBloc = MockAuthBloc();
+    mockThemeBloc = MockThemeBloc();
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    sl.reset();
+    sl.registerFactory<AuthBloc>(() => mockAuthBloc);
+    sl.registerFactory<ThemeBloc>(() => mockThemeBloc);
+
+    // Mocking default states for navigation destination
+    when(() => mockAuthBloc.state).thenReturn(AuthInitial());
+    when(() => mockAuthBloc.stream).thenAnswer((_) => const Stream.empty());
+    when(() => mockThemeBloc.state).thenReturn(ThemeLoaded(ThemeMode.dark));
+    when(() => mockThemeBloc.stream).thenAnswer((_) => const Stream.empty());
+  });
+
+  group('SplashPage Widget Tests', () {
+    testWidgets('should display logo icon and brand texts', (WidgetTester tester) async {
+      await tester.pumpWidget(const MaterialApp(home: SplashPage()));
+
+      // Verify the logo icon exists
+      expect(find.byIcon(Icons.wifi_tethering), findsOneWidget);
+
+      // Verify the main title and subtitle
+      expect(find.text('Plexus Cloud NOC'), findsOneWidget);
+      expect(find.text('Network Operations Center'), findsOneWidget);
+    });
+
+    testWidgets('should have centered layout with a column', (WidgetTester tester) async {
+      await tester.pumpWidget(const MaterialApp(home: SplashPage()));
+
+      expect(find.byType(Center), findsOneWidget);
+      expect(find.byType(Column), findsOneWidget);
+      
+      final column = tester.widget<Column>(find.byType(Column));
+      expect(column.mainAxisAlignment, MainAxisAlignment.center);
+    });
+
+    testWidgets('should navigate to login page after 2 seconds delay', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          routes: {
+            '/': (context) => const SplashPage(),
+            '/login': (context) => BlocProvider<ThemeBloc>.value(
+                  value: mockThemeBloc,
+                  child: const LoginPage(),
+                ),
+          },
+        ),
+      );
+
+      // Verify initial presence of SplashPage
+      expect(find.byType(SplashPage), findsOneWidget);
+      expect(find.byType(LoginPage), findsNothing);
+
+      // Advance time by 2 seconds to trigger navigation
+      await tester.pumpAndSettle(const Duration(seconds: 2));
+
+      // Verify transition to LoginPage
+      expect(find.byType(LoginPage), findsOneWidget);
+      expect(find.byType(SplashPage), findsNothing);
+    });
   });
 }
