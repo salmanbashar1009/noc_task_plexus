@@ -88,10 +88,14 @@ void main() {
 
     // Initially password should be obscured
     final passwordField = find.byType(TextFormField).last;
-    final textField = tester.widget<TextField>(find.descendant(
+    
+    // Find the TextFormField's internal TextField
+    final textFieldFinder = find.descendant(
       of: passwordField,
       matching: find.byType(TextField),
-    ));
+    );
+    
+    TextField textField = tester.widget<TextField>(textFieldFinder);
     expect(textField.obscureText, isTrue);
 
     // Tap the visibility icon
@@ -99,11 +103,8 @@ void main() {
     await tester.pump();
 
     // Password should be visible
-    final updatedTextField = tester.widget<TextField>(find.descendant(
-      of: passwordField,
-      matching: find.byType(TextField),
-    ));
-    expect(updatedTextField.obscureText, isFalse);
+    textField = tester.widget<TextField>(textFieldFinder);
+    expect(textField.obscureText, isFalse);
   });
 }
 
