@@ -25,11 +25,27 @@ class DeviceBloc extends Bloc<DeviceEvent, DeviceState> {
       _previousOnlineStatus[device.id] = device.isOnline;
     }
     
-    // Cleanup old devices
     _previousOnlineStatus.removeWhere(
       (id, _) => devices.every((d) => d.id != id),
     );
     return alertDevices;
+  }
+
+  List<DeviceEntity> _getFilteredDevices(
+    List<DeviceEntity> devices,
+    String query,
+    DeviceFilter filter,
+  ) {
+    return devices.where((d) {
+      final matchesSearch = d.name.toLowerCase().contains(query.toLowerCase());
+      bool matchesFilter = true;
+      if (filter == DeviceFilter.online) {
+        matchesFilter = d.isOnline;
+      } else if (filter == DeviceFilter.offline) {
+        matchesFilter = !d.isOnline;
+      }
+      return matchesSearch && matchesFilter;
+    }).toList();
   }
 
   Future<void> _onStartMonitoring(
@@ -44,7 +60,11 @@ class DeviceBloc extends Bloc<DeviceEvent, DeviceState> {
       (failure) => emit(DeviceError(failure.message)),
       (devices) {
         final alertDevices = _getNewOfflineDevices(devices);
-        emit(DeviceLoaded(devices, alertDevices: alertDevices));
+        emit(DeviceLoaded(
+          devices,
+          alertDevices: alertDevices,
+          filteredDevices: devices,
+        ));
       },
     );
   }
@@ -58,12 +78,45 @@ class DeviceBloc extends Bloc<DeviceEvent, DeviceState> {
       (failure) => emit(DeviceError(failure.message)),
       (devices) {
         final alertDevices = _getNewOfflineDevices(devices);
-        emit(DeviceLoaded(devices, alertDevices: alertDevices));
+        
+        String query = '';
+        DeviceFilter filter = DeviceFilter.all;
+        
+        if (state is DeviceLoaded) {
+          final s = state as DeviceLoaded;
+          query = s.searchQuery;
+          filter = s.currentFilter;
+        }
+
+        final filtered = _getFilteredDevices(devices, query, filter);
+
+        emit(DeviceLoaded(
+          devices,
+          alertDevices: alertDevices,
+          filteredDevices: filtered,
+          searchQuery: query,
+          currentFilter: filter,
+        ));
       },
     );
   }
 
   void _onFilterDevices(FilterDevices event, Emitter<DeviceState> emit) {
-    // Filter logic would go here
+    if (state is DeviceLoaded) {
+      final s = state as DeviceLoaded;
+      
+      final newQuery = event.searchQuery ?? s.searchQuery;
+      final newFilter = event.filter ?? s.currentFilter;
+      
+      final filtered = _getFilteredDevices(s.devices, newQuery, newFilter);
+      
+      emit(DeviceLoaded(
+        s.devices,
+        alertDevices: const [], // Don't trigger alerts on filter
+        filteredDevices: filtered,
+        searchQuery: newQuery,
+        currentFilter: newFilter,
+      ));
+    }
   }
 }

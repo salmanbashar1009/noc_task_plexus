@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:noc_task_plexus/features/devices/presentation/pages/dashboard_page.dart';
+import 'package:noc_task_plexus/features/devices/presentation/pages/dashboard/dashboard_page.dart';
 import 'core/di/injection_container.dart' as di;
 import 'core/di/injection_container.dart';
 import 'features/auth/presentation/pages/login_page.dart';

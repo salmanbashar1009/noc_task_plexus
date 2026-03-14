@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+enum DeviceFilter { all, online, offline }
+
 abstract class DeviceEvent extends Equatable {
   const DeviceEvent();
 
@@ -12,11 +14,11 @@ class StartMonitoring extends DeviceEvent {}
 class RefreshDevices extends DeviceEvent {}
 
 class FilterDevices extends DeviceEvent {
-  final String query;
-  final bool? onlineStatus; // true for online, false for offline, null for all
+  final String? searchQuery;
+  final DeviceFilter? filter;
 
-  const FilterDevices(this.query, {this.onlineStatus});
+  const FilterDevices({this.searchQuery, this.filter});
 
   @override
-  List<Object?> get props => [query, onlineStatus];
+  List<Object?> get props => [searchQuery, filter];
 }
