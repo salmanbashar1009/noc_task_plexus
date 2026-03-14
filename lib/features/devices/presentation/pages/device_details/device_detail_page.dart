@@ -11,7 +11,7 @@ class DeviceDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    // final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -71,8 +71,8 @@ class DeviceDetailPage extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: (device.isOnline ? Colors.green : Colors.red).withOpacity(
-              isDark ? 0.1 : 0.05,
+            color: (device.isOnline ? Colors.green : Colors.red).withAlpha(
+              isDark ? 26 : 128,
             ),
             blurRadius: 20,
             spreadRadius: 5,
@@ -85,8 +85,8 @@ class DeviceDetailPage extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: device.isOnline
-                  ? Colors.green.withOpacity(0.2)
-                  : Colors.red.withOpacity(0.2),
+                  ? Colors.green.withAlpha(52)
+                  : Colors.red.withAlpha(52),
               shape: BoxShape.circle,
             ),
             child: Icon(

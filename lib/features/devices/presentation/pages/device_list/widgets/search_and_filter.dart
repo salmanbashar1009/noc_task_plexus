@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../../bloc/device_event.dart';
-import '../device_list_page.dart';
 
 class SearchAndFilter extends StatelessWidget {
   final String searchQuery;
@@ -82,7 +81,7 @@ class SearchAndFilter extends StatelessWidget {
               decoration: BoxDecoration(
                 color: currentFilter != DeviceFilter.all
                     ? (currentFilter == DeviceFilter.online
-                          ? Colors.greenAccent.withOpacity(0.8)
+                          ? Colors.greenAccent.withAlpha(200)
                           : Colors.redAccent)
                     : theme.colorScheme.surface,
                 borderRadius: BorderRadius.circular(12),

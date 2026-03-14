@@ -99,7 +99,7 @@ class _MetricCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: isDark ? color.withOpacity(0.1) : Colors.black.withOpacity(0.05),
+            color: isDark ? color.withAlpha(26) : Colors.black.withAlpha(128),
             blurRadius: 10,
             spreadRadius: 1,
           ),
@@ -115,7 +115,7 @@ class _MetricCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withAlpha(26),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(icon, color: color, size: 18),
@@ -130,7 +130,7 @@ class _MetricCard extends StatelessWidget {
               Text(
                 value,
                 style: TextStyle(
-                  color: isDark ? color : color.withOpacity(0.8),
+                  color: isDark ? color : color.withAlpha(200),
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
                 ),

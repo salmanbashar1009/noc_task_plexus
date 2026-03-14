@@ -32,7 +32,7 @@ class NavigationCard extends StatelessWidget {
               ? null
               : [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withAlpha(128),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -43,7 +43,7 @@ class NavigationCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: theme.colorScheme.primary.withOpacity(0.1),
+                color: theme.colorScheme.primary.withAlpha(26),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(Icons.list_alt, color: theme.colorScheme.primary),

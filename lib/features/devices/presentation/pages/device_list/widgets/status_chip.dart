@@ -11,8 +11,8 @@ class StatusChip extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: isOnline
-            ? Colors.greenAccent.withOpacity(0.2)
-            : Colors.grey.withOpacity(0.2),
+            ? Colors.greenAccent.withAlpha(52)
+            : Colors.grey.withAlpha(52),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
