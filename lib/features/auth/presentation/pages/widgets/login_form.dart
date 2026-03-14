@@ -18,6 +18,7 @@ class _LoginFormState extends State<LoginForm> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  bool _isPasswordVisible = false;
 
   @override
   void dispose() {
@@ -79,11 +80,29 @@ class _LoginFormState extends State<LoginForm> {
 
   Widget _buildPasswordField(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return TextFormField(
       controller: passwordController,
-      obscureText: true,
+      obscureText: !_isPasswordVisible,
       style: TextStyle(color: theme.colorScheme.onSurface),
-      decoration: _inputDecoration(context, 'Password', Icons.lock_outline),
+      decoration: _inputDecoration(
+        context,
+        'Password',
+        Icons.lock_outline,
+      ).copyWith(
+        suffixIcon: IconButton(
+          icon: Icon(
+            _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+            color: isDark ? Colors.grey[500] : Colors.grey[600],
+          ),
+          onPressed: () {
+            setState(() {
+              _isPasswordVisible = !_isPasswordVisible;
+            });
+          },
+        ),
+      ),
       validator: (value) {
         if (value == null || value.isEmpty) return 'Please enter password';
         if (value.length < 6) return 'Password must be at least 6 characters';
