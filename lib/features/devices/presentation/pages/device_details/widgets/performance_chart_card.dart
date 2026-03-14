@@ -32,7 +32,7 @@ class PerformanceChartCard extends StatelessWidget {
             ? null
             : [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -85,8 +85,8 @@ class PerformanceChartCard extends StatelessWidget {
                       show: true,
                       gradient: LinearGradient(
                         colors: [
-                          color.withOpacity(0.3),
-                          color.withOpacity(0.0),
+                          color.withValues(alpha: 0.3),
+                          color.withValues(alpha: 0.0),
                         ],
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
