@@ -21,6 +21,7 @@ class DeviceDetailPage extends StatelessWidget {
           style: TextStyle(color: theme.colorScheme.onSurface),
         ),
         backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
         iconTheme: IconThemeData(color: theme.colorScheme.onSurface),
       ),

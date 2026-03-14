@@ -18,6 +18,7 @@ class LoginPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent ,
         elevation: 0,
         actions: [
           IconButton(

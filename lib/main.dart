@@ -7,6 +7,7 @@ import 'features/auth/presentation/pages/login_page.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/presentation/bloc/theme_bloc.dart';
 import 'features/devices/presentation/bloc/device_bloc.dart';
+import 'features/splash/presentation/pages/splash_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,8 +35,9 @@ class PlexusApp extends StatelessWidget {
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
             themeMode: mode,
-            home: LoginPage(),
+            home: const SplashPage(),
             routes: {
+              '/splash': (context) => const SplashPage(),
               '/login': (context) => LoginPage(),
               '/dashboard': (context) => BlocProvider<DeviceBloc>(
                 create: (_) => sl<DeviceBloc>(),

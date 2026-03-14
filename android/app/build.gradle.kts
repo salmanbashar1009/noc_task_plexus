@@ -23,7 +23,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.noc_task_plexus"
-        minSdk = flutter.minSdkVersion
+        minSdk = flutter.minSdkVersion // Explicitly set minSdk
         targetSdk = 36
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -52,10 +52,15 @@ android {
 
     buildTypes {
         getByName("release") {
+            // Use debug signing as a fallback if release keystore isn't configured
+            // This allows 'flutter run --release' to work for testing
+            signingConfig = signingConfigs.getByName("debug")
+
             val releaseSigningConfig = signingConfigs.getByName("release")
             if (releaseSigningConfig.storeFile != null) {
                 signingConfig = releaseSigningConfig
             }
+
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
