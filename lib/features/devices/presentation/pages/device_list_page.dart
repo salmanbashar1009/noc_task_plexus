@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/entities/device_entity.dart';
 import '../bloc/device_bloc.dart';
+import '../bloc/device_event.dart';
 import '../bloc/device_state.dart';
 import 'device_detail_page.dart';
 
@@ -18,52 +19,61 @@ class _DeviceListPageState extends State<DeviceListPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1A2E),
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text("All Devices"),
+        title: Text(
+          "All Devices",
+          style: TextStyle(color: theme.colorScheme.onSurface),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        iconTheme: IconThemeData(color: theme.colorScheme.onSurface),
       ),
       body: Column(
         children: [
-          _buildSearchAndFilter(),
+          _buildSearchAndFilter(context),
           Expanded(
             child: BlocBuilder<DeviceBloc, DeviceState>(
               builder: (context, state) {
                 if (state is DeviceLoaded) {
-                  // Apply filters
                   var filtered = state.devices.where((d) {
                     final matchesSearch = d.name.toLowerCase().contains(
-                      _searchQuery.toLowerCase(),
-                    );
+                          _searchQuery.toLowerCase(),
+                        );
                     final matchesFilter = _filterOffline ? !d.isOnline : true;
                     return matchesSearch && matchesFilter;
                   }).toList();
 
                   if (filtered.isEmpty) {
-                    return const Center(
+                    return Center(
                       child: Text(
                         "No devices found",
-                        style: TextStyle(color: Colors.grey),
+                        style: TextStyle(
+                            color: isDark ? Colors.grey : Colors.grey[600]),
                       ),
                     );
                   }
 
                   return RefreshIndicator(
                     onRefresh: () async {
-                      // Trigger a manual refresh event if needed
+                      context.read<DeviceBloc>().add(RefreshDevices());
                     },
                     child: ListView.builder(
                       padding: const EdgeInsets.all(16),
                       itemCount: filtered.length,
                       itemBuilder: (context, index) {
-                        return _buildDeviceCard(filtered[index]);
+                        return _buildDeviceCard(context, filtered[index]);
                       },
                     ),
                   );
                 }
-                return const Center(child: CircularProgressIndicator());
+                return Center(
+                    child: CircularProgressIndicator(
+                        color: theme.colorScheme.primary));
               },
             ),
           ),
@@ -72,7 +82,10 @@ class _DeviceListPageState extends State<DeviceListPage> {
     );
   }
 
-  Widget _buildSearchAndFilter() {
+  Widget _buildSearchAndFilter(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Row(
@@ -80,17 +93,27 @@ class _DeviceListPageState extends State<DeviceListPage> {
           Expanded(
             child: TextField(
               onChanged: (val) => setState(() => _searchQuery = val),
-              style: const TextStyle(color: Colors.white),
+              style: TextStyle(color: theme.colorScheme.onSurface),
               decoration: InputDecoration(
                 hintText: "Search device...",
-                hintStyle: TextStyle(color: Colors.grey[600]),
+                hintStyle: TextStyle(
+                    color: isDark ? Colors.grey[600] : Colors.grey[500]),
                 filled: true,
-                fillColor: const Color(0xFF16213E),
+                fillColor: theme.colorScheme.surface,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
+                  borderSide: isDark
+                      ? BorderSide.none
+                      : BorderSide(color: Colors.grey[300]!),
                 ),
-                prefixIcon: Icon(Icons.search, color: Colors.grey[600]),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: isDark
+                      ? BorderSide.none
+                      : BorderSide(color: Colors.grey[300]!),
+                ),
+                prefixIcon: Icon(Icons.search,
+                    color: isDark ? Colors.grey[600] : Colors.grey[500]),
               ),
             ),
           ),
@@ -102,12 +125,29 @@ class _DeviceListPageState extends State<DeviceListPage> {
               decoration: BoxDecoration(
                 color: _filterOffline
                     ? Colors.redAccent
-                    : const Color(0xFF16213E),
+                    : theme.colorScheme.surface,
                 borderRadius: BorderRadius.circular(12),
+                border: isDark
+                    ? null
+                    : Border.all(
+                        color: _filterOffline
+                            ? Colors.redAccent
+                            : Colors.grey[300]!),
+                boxShadow: isDark
+                    ? null
+                    : [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        )
+                      ],
               ),
               child: Icon(
                 Icons.filter_list,
-                color: _filterOffline ? Colors.white : Colors.grey[600],
+                color: _filterOffline
+                    ? Colors.white
+                    : (isDark ? Colors.grey[600] : Colors.grey[500]),
               ),
             ),
           ),
@@ -116,7 +156,10 @@ class _DeviceListPageState extends State<DeviceListPage> {
     );
   }
 
-  Widget _buildDeviceCard(DeviceEntity device) {
+  Widget _buildDeviceCard(BuildContext context, DeviceEntity device) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -128,8 +171,17 @@ class _DeviceListPageState extends State<DeviceListPage> {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFF16213E),
+          color: theme.colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
+          boxShadow: isDark
+              ? null
+              : [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  )
+                ],
         ),
         child: Row(
           children: [
@@ -153,8 +205,8 @@ class _DeviceListPageState extends State<DeviceListPage> {
                 children: [
                   Text(
                     device.name,
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: theme.colorScheme.onSurface,
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                     ),
@@ -162,7 +214,9 @@ class _DeviceListPageState extends State<DeviceListPage> {
                   const SizedBox(height: 4),
                   Text(
                     "${device.ipAddress} • ${device.location}",
-                    style: TextStyle(color: Colors.grey[400], fontSize: 12),
+                    style: TextStyle(
+                        color: isDark ? Colors.grey[400] : Colors.grey[600],
+                        fontSize: 12),
                   ),
                 ],
               ),

@@ -8,9 +8,7 @@ part 'theme_state.dart';
 class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
   final Box _settingsBox;
 
-  ThemeBloc() 
-      : _settingsBox = Hive.box('settings'),
-        super(ThemeInitial()) {
+  ThemeBloc() : _settingsBox = Hive.box('settings'), super(ThemeInitial()) {
     on<LoadTheme>(_onLoadTheme);
     on<ToggleTheme>(_onToggleTheme);
   }
@@ -21,7 +19,9 @@ class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
   }
 
   void _onToggleTheme(ToggleTheme event, Emitter<ThemeState> emit) {
-    final bool isDark = state is ThemeLoaded && (state as ThemeLoaded).themeMode == ThemeMode.dark;
+    final bool isDark =
+        state is ThemeLoaded &&
+        (state as ThemeLoaded).themeMode == ThemeMode.dark;
     final newMode = isDark ? ThemeMode.light : ThemeMode.dark;
     _settingsBox.put('isDark', !isDark);
     emit(ThemeLoaded(newMode));

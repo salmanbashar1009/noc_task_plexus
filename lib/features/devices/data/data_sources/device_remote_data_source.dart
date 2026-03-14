@@ -4,6 +4,7 @@ import '../models/device_model.dart';
 
 abstract class DeviceRemoteDataSource {
   Stream<List<DeviceModel>> watchDevices();
+  Future<List<DeviceModel>> getDevices();
 }
 
 class DeviceRemoteDataSourceImpl implements DeviceRemoteDataSource {
@@ -32,23 +33,28 @@ class DeviceRemoteDataSourceImpl implements DeviceRemoteDataSource {
 
   @override
   Stream<List<DeviceModel>> watchDevices() {
-    // Simulate real-time updates every 3 seconds
-    return Stream.periodic(const Duration(seconds: 10), (_) {
+    return Stream.periodic(const Duration(seconds: 60), (_) {
       return _updateDevices();
     });
   }
 
+  @override
+  Future<List<DeviceModel>> getDevices() async {
+    // Simulate network delay
+    await Future.delayed(const Duration(milliseconds: 500));
+    return _updateDevices();
+  }
+
   List<DeviceModel> _updateDevices() {
-    // Simulate random status changes and usage spikes
     _currentDevices = _currentDevices.map((device) {
-      final bool goOffline = _random.nextInt(10) == 0;
+      final bool statusChange = _random.nextInt(5) == 0;
 
       return DeviceModel(
         id: device.id,
         name: device.name,
         ipAddress: device.ipAddress,
         location: device.location,
-        isOnline: goOffline ? !device.isOnline : device.isOnline,
+        isOnline: statusChange ? !device.isOnline : device.isOnline,
         lastPingTime: DateTime.now(),
         cpuUsage: (_random.nextDouble() * 100).clamp(5.0, 98.0),
         memoryUsage: (_random.nextDouble() * 100).clamp(10.0, 95.0),

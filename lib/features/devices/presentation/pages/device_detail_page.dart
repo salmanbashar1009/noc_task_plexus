@@ -10,53 +10,65 @@ class DeviceDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1A2E),
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text(device.name),
+        title: Text(
+          device.name,
+          style: TextStyle(color: theme.colorScheme.onSurface),
+        ),
         backgroundColor: Colors.transparent,
+        elevation: 0,
+        iconTheme: IconThemeData(color: theme.colorScheme.onSurface),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildHeaderCard(),
+            _buildHeaderCard(context),
             const SizedBox(height: 24),
-            const Text(
+            Text(
               "Performance Metrics",
               style: TextStyle(
-                color: Colors.white,
+                color: theme.colorScheme.onSurface,
                 fontWeight: FontWeight.bold,
                 fontSize: 18,
               ),
             ),
             const SizedBox(height: 16),
-            _buildChartCard("CPU Usage", device.cpuUsage, Colors.cyan),
+            _buildChartCard(context, "CPU Usage", device.cpuUsage, Colors.cyan),
             const SizedBox(height: 16),
             _buildChartCard(
+              context,
               "Memory Usage",
               device.memoryUsage,
               Colors.purpleAccent,
             ),
             const SizedBox(height: 24),
-            _buildInfoGrid(),
+            _buildInfoGrid(context),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildHeaderCard() {
+  Widget _buildHeaderCard(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF16213E),
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
             color: (device.isOnline ? Colors.green : Colors.red).withOpacity(
-              0.1,
+              isDark ? 0.1 : 0.05,
             ),
             blurRadius: 20,
             spreadRadius: 5,
@@ -85,8 +97,8 @@ class DeviceDetailPage extends StatelessWidget {
             children: [
               Text(
                 device.name,
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: theme.colorScheme.onSurface,
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
@@ -108,11 +120,11 @@ class DeviceDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildChartCard(String title, double value, Color color) {
-    // We simulate a history graph. In a real app, you would pass a list of historic values.
-    // Here we just create a dummy line based on the current value.
+  Widget _buildChartCard(BuildContext context, String title, double value, Color color) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     final spots = List.generate(10, (i) {
-      // Create some noise around the current value
       double noise = (i - 5) * 2.0;
       return FlSpot(i.toDouble(), (value + noise).clamp(0.0, 100.0));
     });
@@ -120,8 +132,15 @@ class DeviceDetailPage extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF16213E),
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
+        boxShadow: isDark ? null : [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          )
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -132,7 +151,7 @@ class DeviceDetailPage extends StatelessWidget {
               Text(
                 title,
                 style: TextStyle(
-                  color: Colors.grey[400],
+                  color: isDark ? Colors.grey[400] : Colors.grey[600],
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -187,54 +206,68 @@ class DeviceDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoGrid() {
+  Widget _buildInfoGrid(BuildContext context) {
     return Column(
       children: [
         Row(
           children: [
-            _buildInfoItem(Icons.location_on, "Location", device.location),
+            _buildInfoItem(context, Icons.location_on, "Location", device.location),
             const SizedBox(width: 12),
-            _buildInfoItem(Icons.computer, "IP Address", device.ipAddress),
+            _buildInfoItem(context, Icons.computer, "IP Address", device.ipAddress),
           ],
         ),
         const SizedBox(height: 12),
         Row(
           children: [
             _buildInfoItem(
+              context,
               Icons.timer,
               "Last Ping",
               DateFormat.jm().format(device.lastPingTime),
             ),
             const SizedBox(width: 12),
-            _buildInfoItem(Icons.memory, "ID", device.id),
+            _buildInfoItem(context, Icons.memory, "ID", device.id),
           ],
         ),
       ],
     );
   }
 
-  Widget _buildInfoItem(IconData icon, String label, String value) {
+  Widget _buildInfoItem(BuildContext context, IconData icon, String label, String value) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFF16213E),
+          color: theme.colorScheme.surface,
           borderRadius: BorderRadius.circular(12),
+          boxShadow: isDark ? null : [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            )
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, color: Colors.grey, size: 18),
+            Icon(icon, color: isDark ? Colors.grey : Colors.grey[500], size: 18),
             const SizedBox(height: 8),
             Text(
               label,
-              style: TextStyle(color: Colors.grey[500], fontSize: 10),
+              style: TextStyle(
+                color: isDark ? Colors.grey[500] : Colors.grey[600], 
+                fontSize: 10
+              ),
             ),
             const SizedBox(height: 4),
             Text(
               value,
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: theme.colorScheme.onSurface,
                 fontWeight: FontWeight.w600,
               ),
               overflow: TextOverflow.ellipsis,

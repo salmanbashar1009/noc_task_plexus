@@ -19,11 +19,8 @@ class DeviceRepositoryImpl implements DeviceRepository {
 
   @override
   Stream<Either<Failure, List<DeviceEntity>>> watchDevices() async* {
-    // If online, yield remote data stream and cache it
-    // If offline, yield cached data immediately
     if (await networkInfo.isConnected) {
       yield* remoteDataSource.watchDevices().map((devices) {
-        // Cache in background
         localDataSource.cacheDevices(devices);
         return Right<Failure, List<DeviceEntity>>(devices);
       });
@@ -39,19 +36,22 @@ class DeviceRepositoryImpl implements DeviceRepository {
 
   @override
   Future<Either<Failure, List<DeviceEntity>>> getDevices() async {
-    // Simple implementation for initial load if needed
     try {
-      final cached = await localDataSource.getCachedDevices();
-      return Right(cached);
+      if (await networkInfo.isConnected) {
+        final devices = await remoteDataSource.getDevices();
+        await localDataSource.cacheDevices(devices);
+        return Right(devices);
+      } else {
+        final cached = await localDataSource.getCachedDevices();
+        return Right(cached);
+      }
     } catch (e) {
-      return Left(CacheFailure(e.toString()));
+      return Left(ServerFailure(e.toString()));
     }
   }
 
   @override
   Future<Either<Failure, DeviceEntity>> getDeviceDetails(String id) async {
-    // In a real app, this would fetch single device details.
-    // Here we just filter the cached list.
     try {
       final devices = await localDataSource.getCachedDevices();
       final device = devices.firstWhere((d) => d.id == id);

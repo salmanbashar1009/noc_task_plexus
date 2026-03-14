@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:noc_task_plexus/core/di/injection_container.dart';
+import '../../../../core/di/injection_container.dart';
+import '../../../../core/theme/presentation/bloc/theme_bloc.dart';
 import '../bloc/device_bloc.dart';
 import '../bloc/device_event.dart';
 import '../bloc/device_state.dart';
@@ -11,25 +12,32 @@ class DashboardPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return BlocProvider(
       create: (_) => sl<DeviceBloc>()..add(StartMonitoring()),
       child: Scaffold(
-        // appBar: AppBar(
-        //   title: const Text("Dashboard"),
-        //   backgroundColor: Colors.transparent,
-        //   elevation: 0,
-        //   actions: [
-        //     IconButton(
-        //       icon: const Icon(Icons.settings, color: Colors.white70),
-        //       onPressed: () {},
-        //     ),
-        //   ],
-        // ),
+        // appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0),
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          actions: [
+            IconButton(
+              icon: Icon(
+                isDark ? Icons.light_mode : Icons.dark_mode,
+                color: isDark ? Colors.white : Colors.black,
+              ),
+              onPressed: () {
+                context.read<ThemeBloc>().add(ToggleTheme());
+              },
+            ),
+          ],
+        ),
         extendBodyBehindAppBar: true,
         body: BlocListener<DeviceBloc, DeviceState>(
           listener: (context, state) {
             if (state is DeviceLoaded && state.alertDevice != null) {
-              // Delay alert 10s after data update
               Future.delayed(const Duration(seconds: 10), () {
                 if (context.mounted) {
                   final currentState = context.read<DeviceBloc>().state;
@@ -51,28 +59,24 @@ class DashboardPage extends StatelessWidget {
             }
           },
           child: Container(
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [Color(0xFF1A1A2E), Color(0xFF16213E)],
+                colors: isDark 
+                  ? [const Color(0xFF1A1A2E), const Color(0xFF16213E)]
+                  : [const Color(0xFFF5F7FB), const Color(0xFFE8EDF5)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
             ),
             child: Padding(
-              padding: const EdgeInsets.only(
-                top: 80,
-                left: 20,
-                right: 20,
-                bottom: 20,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 60),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildHeader(),
-                  const SizedBox(height: 24),
+                  _buildHeader(context),
                   _buildMetricGrid(context),
-                  const SizedBox(height: 24),
                   _buildNavigationCard(context),
+                  const SizedBox(height: 24),
                 ],
               ),
             ),
@@ -82,19 +86,23 @@ class DashboardPage extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader() {
-    return const Column(
+  Widget _buildHeader(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "Welcome Back,",
-          style: TextStyle(color: Colors.grey, fontSize: 16),
+          "Welcome,", 
+          style: TextStyle(
+            color: theme.brightness == Brightness.dark ? Colors.grey : Colors.grey[600], 
+            fontSize: 16
+          )
         ),
-        SizedBox(height: 4),
+        const SizedBox(height: 4),
         Text(
           "Admin User",
           style: TextStyle(
-            color: Colors.white,
+            color: theme.colorScheme.onSurface,
             fontSize: 24,
             fontWeight: FontWeight.bold,
           ),
@@ -108,14 +116,14 @@ class DashboardPage extends StatelessWidget {
       child: BlocBuilder<DeviceBloc, DeviceState>(
         builder: (context, state) {
           if (state is DeviceLoading) {
-            return const Center(
-              child: CircularProgressIndicator(color: Colors.cyan),
+            return Center(
+              child: CircularProgressIndicator(color: Theme.of(context).colorScheme.primary),
             );
           }
           if (state is DeviceLoaded) {
             final online = state.devices.where((d) => d.isOnline).length;
             final offline = state.devices.where((d) => !d.isOnline).length;
-            final alerts = offline; // Simplified metric
+            final alerts = offline;
 
             return RefreshIndicator(
               onRefresh: () async {
@@ -129,24 +137,28 @@ class DashboardPage extends StatelessWidget {
                 mainAxisSpacing: 16,
                 children: [
                   _buildMetricCard(
+                    context,
                     "Total Devices",
                     state.devices.length.toString(),
                     Colors.blue,
                     Icons.devices,
                   ),
                   _buildMetricCard(
+                    context,
                     "Online",
                     online.toString(),
                     Colors.greenAccent,
                     Icons.wifi,
                   ),
                   _buildMetricCard(
+                    context,
                     "Offline",
                     offline.toString(),
                     Colors.redAccent,
                     Icons.wifi_off,
                   ),
                   _buildMetricCard(
+                    context,
                     "Alerts",
                     alerts.toString(),
                     Colors.orangeAccent,
@@ -156,10 +168,10 @@ class DashboardPage extends StatelessWidget {
               ),
             );
           }
-          return const Center(
+          return Center(
             child: Text(
               "Unable to load data",
-              style: TextStyle(color: Colors.white),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
             ),
           );
         },
@@ -168,19 +180,23 @@ class DashboardPage extends StatelessWidget {
   }
 
   Widget _buildMetricCard(
+    BuildContext context,
     String title,
     String value,
     Color color,
     IconData icon,
   ) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF16213E),
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.1),
+            color: isDark ? color.withOpacity(0.1) : Colors.black.withOpacity(0.05),
             blurRadius: 10,
             spreadRadius: 1,
           ),
@@ -201,7 +217,7 @@ class DashboardPage extends StatelessWidget {
                 ),
                 child: Icon(icon, color: color, size: 18),
               ),
-              const Icon(Icons.more_horiz, color: Colors.grey, size: 18),
+              Icon(Icons.more_horiz, color: isDark ? Colors.grey : Colors.grey[400], size: 18),
             ],
           ),
           Column(
@@ -210,7 +226,7 @@ class DashboardPage extends StatelessWidget {
               Text(
                 value,
                 style: TextStyle(
-                  color: color,
+                  color: isDark ? color : color.withOpacity(0.8),
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
                 ),
@@ -219,7 +235,7 @@ class DashboardPage extends StatelessWidget {
               Text(
                 title,
                 style: TextStyle(
-                  color: Colors.grey[400],
+                  color: isDark ? Colors.grey[400] : Colors.grey[600],
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
                 ),
@@ -232,6 +248,9 @@ class DashboardPage extends StatelessWidget {
   }
 
   Widget _buildNavigationCard(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -247,40 +266,50 @@ class DashboardPage extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: const Color(0xFF16213E),
+          color: theme.colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
+          boxShadow: isDark ? null : [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            )
+          ],
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.cyan.withOpacity(0.1),
+                color: theme.colorScheme.primary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Icon(Icons.list_alt, color: Colors.cyan),
+              child: Icon(Icons.list_alt, color: theme.colorScheme.primary),
             ),
             const SizedBox(width: 16),
-            const Column(
+            Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   "Device Monitor",
                   style: TextStyle(
-                    color: Colors.white,
+                    color: theme.colorScheme.onSurface,
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
                   ),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Text(
                   "View status & performance",
-                  style: TextStyle(color: Colors.grey, fontSize: 12),
+                  style: TextStyle(
+                    color: isDark ? Colors.grey : Colors.grey[600], 
+                    fontSize: 12
+                  ),
                 ),
               ],
             ),
             const Spacer(),
-            const Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 16),
+            Icon(Icons.arrow_forward_ios, color: isDark ? Colors.grey : Colors.grey[400], size: 16),
           ],
         ),
       ),
