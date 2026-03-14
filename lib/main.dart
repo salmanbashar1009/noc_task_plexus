@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'injection_container.dart' as di;
-import 'injection_container.dart';
+import 'core/di/injection_container.dart' as di;
+import 'core/di/injection_container.dart';
 import 'features/auth/presentation/pages/login_page.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/presentation/bloc/theme_bloc.dart';
@@ -36,26 +36,28 @@ class PlexusApp extends StatelessWidget {
             routes: {
               '/login': (context) => LoginPage(),
               '/dashboard': (context) => Scaffold(
-                    appBar: AppBar(
-                      actions: [
-                        IconButton(
-                          icon: Icon(mode == ThemeMode.dark
-                              ? Icons.light_mode
-                              : Icons.dark_mode),
-                          onPressed: () {
-                            context.read<ThemeBloc>().add(ToggleTheme());
-                          },
-                        )
-                      ],
-                    ),
-                    body: const Center(
-                      child: Text(
-                        "Dashboard\n(Coming Soon)",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 24),
+                appBar: AppBar(
+                  actions: [
+                    IconButton(
+                      icon: Icon(
+                        mode == ThemeMode.dark
+                            ? Icons.light_mode
+                            : Icons.dark_mode,
                       ),
+                      onPressed: () {
+                        context.read<ThemeBloc>().add(ToggleTheme());
+                      },
                     ),
+                  ],
+                ),
+                body: const Center(
+                  child: Text(
+                    "Dashboard\n(Coming Soon)",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 24),
                   ),
+                ),
+              ),
             },
           );
         },

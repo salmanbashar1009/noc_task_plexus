@@ -4,12 +4,12 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:dio/dio.dart';
 import 'package:noc_task_plexus/features/auth/data/data_sources/auth_local_data_source.dart';
 
-import 'core/network/network_info.dart';
-import 'features/auth/data/repositories/auth_repository_impl.dart';
-import 'features/auth/domain/repositories/auth_repository.dart';
-import 'features/auth/domain/usecases/login_user.dart';
-import 'features/auth/presentation/bloc/auth_bloc.dart';
-import 'core/theme/presentation/bloc/theme_bloc.dart';
+import '../network/network_info.dart';
+import '../../features/auth/data/repositories/auth_repository_impl.dart';
+import '../../features/auth/domain/repositories/auth_repository.dart';
+import '../../features/auth/domain/usecases/login_user.dart';
+import '../../features/auth/presentation/bloc/auth_bloc.dart';
+import '../theme/presentation/bloc/theme_bloc.dart';
 
 final sl = GetIt.instance;
 
