@@ -18,7 +18,6 @@ class DashboardPage extends StatelessWidget {
     return BlocProvider(
       create: (_) => sl<DeviceBloc>()..add(StartMonitoring()),
       child: Scaffold(
-        // appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0),
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
@@ -37,25 +36,19 @@ class DashboardPage extends StatelessWidget {
         extendBodyBehindAppBar: true,
         body: BlocListener<DeviceBloc, DeviceState>(
           listener: (context, state) {
-            if (state is DeviceLoaded && state.alertDevice != null) {
-              Future.delayed(const Duration(seconds: 10), () {
-                if (context.mounted) {
-                  final currentState = context.read<DeviceBloc>().state;
-                  if (currentState is DeviceLoaded &&
-                      currentState.alertDevice != null) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          "ALERT: ${currentState.alertDevice!.name} is offline!",
-                        ),
-                        backgroundColor: Colors.redAccent,
-                        behavior: SnackBarBehavior.floating,
-                        duration: const Duration(seconds: 3),
-                      ),
-                    );
-                  }
-                }
-              });
+            if (state is DeviceLoaded && state.alertDevices.isNotEmpty) {
+              for (var device in state.alertDevices) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      "ALERT: ${device.name} is offline!",
+                    ),
+                    backgroundColor: Colors.redAccent,
+                    behavior: SnackBarBehavior.floating,
+                    duration: const Duration(seconds: 3),
+                  ),
+                );
+              }
             }
           },
           child: Container(

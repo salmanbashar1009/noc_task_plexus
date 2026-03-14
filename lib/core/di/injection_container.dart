@@ -28,7 +28,8 @@ Future<void> init() async {
   // --- Features ---
   // Auth
   sl.registerFactory(() => AuthBloc(loginUseCase: sl()));
-  sl.registerFactory(() => DeviceBloc(repository: sl()));
+  // sl.registerFactory(() => DeviceBloc(repository: sl()));
+  sl.registerLazySingleton(() => DeviceBloc(repository: sl()));
 
   // Use Cases
   sl.registerLazySingleton(() => LoginUser(sl()));

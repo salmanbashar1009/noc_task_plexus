@@ -6,6 +6,8 @@ import '../bloc/device_event.dart';
 import '../bloc/device_state.dart';
 import 'device_detail_page.dart';
 
+enum DeviceFilter { all, online, offline }
+
 class DeviceListPage extends StatefulWidget {
   const DeviceListPage({super.key});
 
@@ -15,7 +17,7 @@ class DeviceListPage extends StatefulWidget {
 
 class _DeviceListPageState extends State<DeviceListPage> {
   String _searchQuery = '';
-  bool _filterOffline = false;
+  DeviceFilter _currentFilter = DeviceFilter.all;
 
   @override
   Widget build(BuildContext context) {
@@ -30,6 +32,7 @@ class _DeviceListPageState extends State<DeviceListPage> {
           style: TextStyle(color: theme.colorScheme.onSurface),
         ),
         backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
         iconTheme: IconThemeData(color: theme.colorScheme.onSurface),
       ),
@@ -44,7 +47,14 @@ class _DeviceListPageState extends State<DeviceListPage> {
                     final matchesSearch = d.name.toLowerCase().contains(
                           _searchQuery.toLowerCase(),
                         );
-                    final matchesFilter = _filterOffline ? !d.isOnline : true;
+                    
+                    bool matchesFilter = true;
+                    if (_currentFilter == DeviceFilter.online) {
+                      matchesFilter = d.isOnline;
+                    } else if (_currentFilter == DeviceFilter.offline) {
+                      matchesFilter = !d.isOnline;
+                    }
+
                     return matchesSearch && matchesFilter;
                   }).toList();
 
@@ -118,26 +128,46 @@ class _DeviceListPageState extends State<DeviceListPage> {
             ),
           ),
           const SizedBox(width: 12),
-          GestureDetector(
-            onTap: () => setState(() => _filterOffline = !_filterOffline),
+          PopupMenuButton<DeviceFilter>(
+            onSelected: (DeviceFilter filter) {
+              setState(() {
+                _currentFilter = filter;
+              });
+            },
+            offset: const Offset(0, 50),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            itemBuilder: (BuildContext context) => <PopupMenuEntry<DeviceFilter>>[
+              const PopupMenuItem<DeviceFilter>(
+                value: DeviceFilter.all,
+                child: Text('All Devices'),
+              ),
+              const PopupMenuItem<DeviceFilter>(
+                value: DeviceFilter.online,
+                child: Text('Online Devices'),
+              ),
+              const PopupMenuItem<DeviceFilter>(
+                value: DeviceFilter.offline,
+                child: Text('Offline Devices'),
+              ),
+            ],
             child: Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: _filterOffline
-                    ? Colors.redAccent
+                color: _currentFilter != DeviceFilter.all
+                    ? (_currentFilter == DeviceFilter.online ? Colors.greenAccent.withOpacity(0.8) : Colors.redAccent)
                     : theme.colorScheme.surface,
                 borderRadius: BorderRadius.circular(12),
                 border: isDark
                     ? null
                     : Border.all(
-                        color: _filterOffline
-                            ? Colors.redAccent
+                        color: _currentFilter != DeviceFilter.all
+                            ? (_currentFilter == DeviceFilter.online ? Colors.greenAccent : Colors.redAccent)
                             : Colors.grey[300]!),
                 boxShadow: isDark
                     ? null
                     : [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
+                          color: Colors.black.withAlpha(128),
                           blurRadius: 4,
                           offset: const Offset(0, 2),
                         )
@@ -145,7 +175,7 @@ class _DeviceListPageState extends State<DeviceListPage> {
               ),
               child: Icon(
                 Icons.filter_list,
-                color: _filterOffline
+                color: _currentFilter != DeviceFilter.all
                     ? Colors.white
                     : (isDark ? Colors.grey[600] : Colors.grey[500]),
               ),

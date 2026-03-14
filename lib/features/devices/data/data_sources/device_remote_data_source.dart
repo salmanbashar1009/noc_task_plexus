@@ -33,7 +33,7 @@ class DeviceRemoteDataSourceImpl implements DeviceRemoteDataSource {
 
   @override
   Stream<List<DeviceModel>> watchDevices() {
-    return Stream.periodic(const Duration(seconds: 60), (_) {
+    return Stream.periodic(const Duration(seconds: 10), (_) {
       return _updateDevices();
     });
   }

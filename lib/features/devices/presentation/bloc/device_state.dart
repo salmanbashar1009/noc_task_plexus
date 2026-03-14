@@ -14,12 +14,12 @@ class DeviceLoading extends DeviceState {}
 
 class DeviceLoaded extends DeviceState {
   final List<DeviceEntity> devices;
-  final DeviceEntity? alertDevice;
+  final List<DeviceEntity> alertDevices;
 
-  const DeviceLoaded(this.devices, {this.alertDevice});
+  const DeviceLoaded(this.devices, {this.alertDevices = const []});
 
   @override
-  List<Object?> get props => [devices, alertDevice];
+  List<Object?> get props => [devices, alertDevices];
 }
 
 class DeviceError extends DeviceState {
